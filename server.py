@@ -1,30 +1,45 @@
 import flask
 import json
 import argparse
+from flask_sqlalchemy import SQLAlchemy
+
 
 app = flask.Flask("FlappyBird")
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+db = SQLAlchemy(app)
 
-total_score = {'denis': 17, 'albert': 10, 'bogdan': 19, 'yan': 24, 'misha': 10, 'mehron': 9}
-max_score = {'denis': 4, 'albert': 5, 'bogdan': 9, 'yan': 12, 'misha': 5, 'mehron': 5}
+
+class gamer(db.Model):
+    def __init__(self, username, total_score, max_score):
+        self.username = username
+        self.total_score = total_score
+        self.max_score = max_score
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    max_score = db.Column(db.Integer, nullable=True)
+    total_score = db.Column(db.Integer, nullable=True)
+
+
+db.create_all()
 
 
 @app.route('/get_total_score', methods=['GET'])
 def get_total_score():
-    print(flask.request.json['nick'])
-    return json.dumps(total_score[flask.request.json['nick']])
+    user = gamer.query.filter_by(username=flask.request.json['nick']).first()
+    return json.dumps(user.total_score)
 
 
 @app.route('/get_max_score', methods=['GET'])
 def get_max_score():
-    print(flask.request.json['nick'])
-    return json.dumps(max_score[flask.request.json['nick']])
+    user = gamer.query.filter_by(username=flask.request.json['nick']).first()
+    return json.dumps(user.max_score)
 
 
 @app.route('/run_game', methods=['POST'])
 def run_game():
-    total_score[flask.request.json['nick'][0]] = flask.request.json['nick'][1]
-    max_score[flask.request.json['nick'][0]] = flask.request.json['nick'][2]
-    print(total_score)
+    db.session.add(gamer(flask.request.json['nick'][0], flask.request.json['nick'][1], flask.request.json['nick'][2]))
+    db.session.commit()
     return json.dumps('OK')
 
 
