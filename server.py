@@ -15,8 +15,7 @@ class gamer(db.Model):
         self.total_score = total_score
         self.max_score = max_score
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False, primary_key=True)
     max_score = db.Column(db.Integer, nullable=True)
     total_score = db.Column(db.Integer, nullable=True)
 
@@ -45,9 +44,10 @@ def run_game():
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--host', default='localhost')
     parser.add_argument('--port', default=50000, type=int)
     args = parser.parse_args()
-    app.run('localhost', args.port, debug=True, threaded=True)
+    app.run(args.host, args.port, debug=True, threaded=True)
 
 
 if __name__ == '__main__':
